@@ -1,3 +1,45 @@
+from tkinter import *
+from tkinter import messagebox
+
+# создание окна
+ws = Tk()
+ws.title('S-DES')
+ws.geometry('225x250')
+ws["bg"] = "gray80"
+
+Label(ws, bg='gray81', text="Введите фразу: ").place(x=50, y=30)
+decimal_number_ = Entry(ws)
+decimal_number_.place(x=50, y=50)
+
+def Decimal_number():
+    x=''
+    decimal_number = decimal_number_.get()
+    if decimal_number != '':
+        decimal_number = int(decimal_number)
+        binary_representation = bin(int(decimal_number))[2:]
+        if len(binary_representation) < 8:
+            x = '0' * (8 - len(binary_representation)) + binary_representation
+        else:
+            x = binary_representation
+    return x
+
+
+Label(ws, bg='gray81', text="Введите ключ: ").place(x=50, y=80)
+decimal_number_key_ = Entry(ws)
+decimal_number_key_.place(x=50, y=100)
+
+def Decimal_number_key():
+    k=''
+    decimal_number_key = decimal_number_key_.get()
+    if decimal_number_key != '':
+        decimal_number_key = int(decimal_number_key)
+        binary_representation = bin(decimal_number_key)[2:]
+        if len(binary_representation) < 10:
+            k = '0' * (10 - len(binary_representation)) + binary_representation
+        else:
+            k = binary_representation
+    return k
+
 dict1 = {
         '0000': '01', '0001': '00', '0010': '11', '0011': '10',
         '0100': '11', '0101': '10', '0110': '01', '0111': '00',
@@ -11,6 +53,9 @@ dict2 = {
     '1000': '11', '1001': '00', '1010': '01', '1011': '00',
     '1100': '10', '1101': '01', '1110': '00', '1111': '11'
 }
+
+keyE1 = "41232341" # перестановка E
+keyE2 = "2431" # перестановка P
 def cyclic_shift(input_str, positions):
     length = len(input_str)
     positions %= length
@@ -56,61 +101,62 @@ def f(string, key):
     v = permutation(b, keyE2)
     return v
 
+def Answer():
+    x = Decimal_number()
+    k = Decimal_number_key()
 
-x = input()
-k = input()
+    permutation = [3, 5, 2, 7, 4, 10, 1, 9, 8, 6]
 
-keyE1 = "41232341" # перестановка E
-keyE2 = "2431" # перестановка P
+    result = ''
 
-permutation = [3, 5, 2, 7, 4, 10, 1, 9, 8, 6]
+    for i in range(10):
+        index = permutation[i]
+        result = result + k[index - 1]
 
-result = ''
+    left_side = result[:5]
+    right_side = result[-5:]
 
-for i in range(10):
-    index = permutation[i]
-    result = result + k[index - 1]
+    shifted_str1 = cyclic_shift(left_side, 1)
+    shifted_str2 = cyclic_shift(right_side, 1)
 
-left_side = result[:5]
-right_side = result[-5:]
+    result_for_permutation = shifted_str1 + shifted_str2
+    permutation = [6, 3, 7, 4, 8, 5, 10, 9]
+    key1 = ''
 
-shifted_str1 = cyclic_shift(left_side, 1)
-shifted_str2 = cyclic_shift(right_side, 1)
+    for i in range(8):
+        index = permutation[i]
+        key1 = key1 + result_for_permutation[index - 1]
 
-result_for_permutation = shifted_str1 + shifted_str2
-permutation = [6, 3, 7, 4, 8, 5, 10, 9]
-key1 = ''
+    shifted1 = cyclic_shift(shifted_str1, 2)
+    shifted2 = cyclic_shift(shifted_str2, 2)
 
-for i in range(8):
-    index = permutation[i]
-    key1 = key1 + result_for_permutation[index - 1]
+    result_for_permutation2 = shifted1 + shifted2
+    key2 = ''
 
-shifted1 = cyclic_shift(shifted_str1, 2)
-shifted2 = cyclic_shift(shifted_str2, 2)
+    for i in range(8):
+        index = permutation[i]
+        key2 = key2 + result_for_permutation2[index - 1]
 
-result_for_permutation2 = shifted1 + shifted2
-key2 = ''
-
-for i in range(8):
-    index = permutation[i]
-    key2 = key2 + result_for_permutation2[index - 1]
-
-permutation = [2, 6, 3, 1, 4, 8, 5, 7] # перестановка IP
+    permutation = [2, 6, 3, 1, 4, 8, 5, 7] # перестановка IP
 
 
-result_ip = ''
-for i in range(8):
-    index = permutation[i]
-    result_ip = result_ip + x[index - 1]
+    result_ip = ''
+    for i in range(8):
+        index = permutation[i]
+        result_ip = result_ip + x[index - 1]
 
-left_side = str(result_ip[-4:] * 2)
-right_side = result_ip[-4:]
+    left_side = str(result_ip[-4:] * 2)
+    right_side = result_ip[-4:]
 
-result_before_f1 = summ_with_side(f(left_side, key1), result_ip[:4])
+    result_before_f1 = summ_with_side(f(left_side, key1), result_ip[:4])
 
-result_before_f2 = summ_with_side(f(result_before_f1 * 2, key2), result_ip[4:])
+    result_before_f2 = summ_with_side(f(result_before_f1 * 2, key2), result_ip[4:])
 
-permutation_last = [4, 1, 3, 5, 7, 2, 8, 6]
-answer = permutation_with_expansion(result_before_f2 + result_before_f1, permutation_last)
+    permutation_last = [4, 1, 3, 5, 7, 2, 8, 6]
+    answer = permutation_with_expansion(result_before_f2 + result_before_f1, permutation_last)
 
-print(answer)
+    Label(ws, bg='gray81', text=f'Результат: {int(answer, 2)}').place(x=65, y=180)
+
+btn = Button(ws, text="Зашифровать", command=Answer)
+btn.place(x=65, y=135)
+ws.mainloop()
