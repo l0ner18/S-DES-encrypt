@@ -1,19 +1,31 @@
 from tkinter import *
-from tkinter import messagebox
+from tkinter.messagebox import showerror, showinfo
+import random, os
+import xlsxwriter
 
 # создание окна
 ws = Tk()
 ws.title('S-DES')
-ws.geometry('225x250')
+ws.geometry('355x200')
 ws["bg"] = "gray80"
 
-Label(ws, bg='gray81', text="Введите фразу: ").place(x=50, y=30)
+Label(ws, bg='gray81', text="Проверка").place(x=60, y=10)
+Label(ws, bg='gray81', text="Фраза").place(x=30, y=30)
 decimal_number_ = Entry(ws)
-decimal_number_.place(x=50, y=50)
+decimal_number_.place(x=30, y=50)
 
-def Decimal_number():
+Label(ws, bg='gray81', text="Ключ").place(x=30, y=75)
+decimal_number_key_ = Entry(ws)
+decimal_number_key_.place(x=30, y=95)
+
+Label(ws, bg='gray81', text="Генерация").place(x=225, y=10)
+Label(ws, bg='gray81', text="Количество данных").place(x=200, y=30)
+decimal_count_ = Entry(ws)
+decimal_count_.place(x=200, y=50)
+
+def Decimal_number(number):
     x=''
-    decimal_number = decimal_number_.get()
+    decimal_number = number
     if decimal_number != '':
         decimal_number = int(decimal_number)
         binary_representation = bin(int(decimal_number))[2:]
@@ -23,14 +35,9 @@ def Decimal_number():
             x = binary_representation
     return x
 
-
-Label(ws, bg='gray81', text="Введите ключ: ").place(x=50, y=80)
-decimal_number_key_ = Entry(ws)
-decimal_number_key_.place(x=50, y=100)
-
-def Decimal_number_key():
+def Decimal_number_key(key):
     k=''
-    decimal_number_key = decimal_number_key_.get()
+    decimal_number_key = key
     if decimal_number_key != '':
         decimal_number_key = int(decimal_number_key)
         binary_representation = bin(decimal_number_key)[2:]
@@ -39,6 +46,18 @@ def Decimal_number_key():
         else:
             k = binary_representation
     return k
+
+def input_number():
+    decimal_number = decimal_number_.get()
+    return decimal_number
+
+def input_key():
+    decimal_number_key = decimal_number_key_.get()
+    return decimal_number_key
+
+def input_count():
+    decimal_count = decimal_count_.get()
+    return decimal_count
 
 dict1 = {
         '0000': '01', '0001': '00', '0010': '11', '0011': '10',
@@ -101,9 +120,9 @@ def f(string, key):
     v = permutation(b, keyE2)
     return v
 
-def Answer():
-    x = Decimal_number()
-    k = Decimal_number_key()
+def Answer(data, key):
+    x = data
+    k = key
 
     permutation = [3, 5, 2, 7, 4, 10, 1, 9, 8, 6]
 
@@ -154,9 +173,62 @@ def Answer():
 
     permutation_last = [4, 1, 3, 5, 7, 2, 8, 6]
     answer = permutation_with_expansion(result_before_f2 + result_before_f1, permutation_last)
+    return answer
 
-    Label(ws, bg='gray81', text=f'Результат: {int(answer, 2)}').place(x=65, y=180)
+def generate_number():
+    return random.randint(0, 255)
 
-btn = Button(ws, text="Зашифровать", command=Answer)
-btn.place(x=65, y=135)
+def generate_key():
+    return random.randint(0, 1023)
+def Generate(count):
+    try:
+        workbook = xlsxwriter.Workbook('dataSDES.xlsx')
+        worksheet = workbook.add_worksheet()
+        worksheet.write('A1', 'X')
+        worksheet.write('B1', 'K')
+        worksheet.write('C1', 'Answer')
+
+        for i in range(1, int(count) + 1):
+            x = str(Decimal_number(generate_number()))
+            k = str(Decimal_number_key(generate_key()))
+            answer = Answer(x, k)
+
+            worksheet.write(f'A{i + 1}', int(x, 2))
+            worksheet.write(f'B{i + 1}', int(k, 2))
+            worksheet.write(f'C{i + 1}', int(answer, 2))
+
+        workbook.close()
+
+        # Проверяем, существует ли файл после закрытия
+        if os.path.exists('dataSDES.xlsx'):
+            showinfo("Информация", "Данные успешно сгенерированы и сохранены в dataSDES.xlsx")
+        else:
+            showerror("Ошибка", "Не удалось создать файл")
+
+    except Exception as e:
+        showerror("Ошибка", f"Произошла ошибка при генерации данных: {str(e)}")
+
+def check():
+    data = input_number()
+    key = input_key()
+
+    if data == '' or key == '':
+        showerror(title="Ошибка", message="Заполните все поля")
+    else:
+        data_to_answer = Decimal_number(data)
+        key_to_answer = Decimal_number_key(key)
+        answer = Answer(str(data_to_answer), str(key_to_answer))
+        Label(ws, bg='gray81', text=f'Результат: {int(answer, 2)}').place(x=50, y=170)
+def check_generate():
+    count = input_count()
+
+    if count == '':
+        showerror(title="Ошибка", message="Заполните поле")
+    else:
+        Generate(count)
+
+btn = Button(ws, text="Зашифровать", command=check)
+btn.place(x=50, y=135)
+btn_generate = Button(ws, text="Сгенерировать", command=check_generate)
+btn_generate.place(x=215, y=135)
 ws.mainloop()
